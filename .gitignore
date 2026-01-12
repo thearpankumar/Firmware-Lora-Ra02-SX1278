@@ -1,0 +1,109 @@
+# PlatformIO
+.pio/
+.vscode/
+.clang_complete
+.gcc-flags.json
+
+# Build artifacts
+*.elf
+*.bin
+*.hex
+*.map
+
+# Compiled Object files
+*.o
+*.obj
+*.ko
+*.d
+
+# Archives
+*.a
+*.lib
+
+# Shared objects
+*.so
+*.so.*
+*.dylib
+*.dll
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# IDE - Sublime Text
+*.sublime-workspace
+
+# IDE - Eclipse
+.cproject
+.project
+.settings/
+
+# IDE - CLion / IntelliJ
+.idea/
+*.iml
+cmake-build-*/
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+# Temporary files
+*.swp
+*.swo
+*.tmp
+*.temp
+*.log
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Cache
+*.cache
+
+# Environment
+.env
+.env.local
+
+# Documentation build
+docs/_build/
+
+# Test coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Debugging
+*.dSYM/
+
+# Misc
+.pio/
+libdeps/
