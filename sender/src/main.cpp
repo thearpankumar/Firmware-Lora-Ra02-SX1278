@@ -30,6 +30,8 @@ void setup() {
     Serial.println(F("===================================="));
     Serial.print(F("Board: "));
     Serial.println(BOARD_NAME);
+    Serial.print(F("Device: "));
+    Serial.println(DEVICE_NAME);
     Serial.println();
 
     // Initialize LoRa
@@ -98,8 +100,8 @@ void loop() {
                 return;
         }
 
-        // Encode sensor response
-        size_t len = protocol.encodeSensorResponse(currentSensor, value, unit, txBuffer);
+        // Encode sensor response with device name
+        size_t len = protocol.encodeSensorResponseWithDevice(DEVICE_NAME, currentSensor, value, unit, txBuffer);
 
         if (len > 0 && loraComm.sendPacket(txBuffer, len)) {
             Serial.print(F("[TX] "));

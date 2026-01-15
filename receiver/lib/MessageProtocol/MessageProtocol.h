@@ -58,6 +58,7 @@ struct SensorData {
     uint8_t sensorId;
     float value;
     char unit[16];
+    char deviceName[32];  // Device identifier (e.g., "trident1", "trident2")
 };
 
 class MessageProtocol {
@@ -72,8 +73,11 @@ public:
     // Encode sensor request
     size_t encodeSensorRequest(uint8_t sensorId, uint8_t* buffer);
 
-    // Encode sensor response
+    // Encode sensor response (legacy - no device name)
     size_t encodeSensorResponse(uint8_t sensorId, float value, const char* unit, uint8_t* buffer);
+
+    // Encode sensor response with device name
+    size_t encodeSensorResponseWithDevice(const char* deviceName, uint8_t sensorId, float value, const char* unit, uint8_t* buffer);
 
     // Encode command
     size_t encodeCommand(uint8_t cmdId, const uint8_t* params, size_t paramLen, uint8_t* buffer);
@@ -106,8 +110,11 @@ public:
     // Get command name
     const char* getCommandName(uint8_t cmdId);
 
-    // Parse sensor response payload
+    // Parse sensor response payload (legacy - no device name)
     bool parseSensorResponse(const uint8_t* payload, uint8_t payloadLength, SensorData& data);
+
+    // Parse sensor response with device name
+    bool parseSensorResponseWithDevice(const uint8_t* payload, uint8_t payloadLength, SensorData& data);
 
 private:
     uint16_t lastMessageId;

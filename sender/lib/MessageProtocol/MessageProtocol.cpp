@@ -112,6 +112,40 @@ size_t MessageProtocol::encodeSensorResponse(uint8_t sensorId, float value, cons
     return encodePacket(MSG_SENSOR_RESPONSE, payload, index, buffer);
 }
 
+size_t MessageProtocol::encodeSensorResponseWithDevice(const char* deviceName, uint8_t sensorId, float value, const char* unit, uint8_t* buffer) {
+    uint8_t payload[128];
+    size_t index = 0;
+
+    // Device name length (1 byte)
+    size_t deviceNameLen = strlen(deviceName);
+    if (deviceNameLen > 31) {
+        deviceNameLen = 31;
+    }
+    payload[index++] = (uint8_t)deviceNameLen;
+
+    // Device name (variable length, no null terminator - length is known)
+    memcpy(&payload[index], deviceName, deviceNameLen);
+    index += deviceNameLen;
+
+    // Sensor ID
+    payload[index++] = sensorId;
+
+    // Value (4 bytes float)
+    memcpy(&payload[index], &value, sizeof(float));
+    index += sizeof(float);
+
+    // Unit string
+    size_t unitLen = strlen(unit);
+    if (unitLen > 50) {  // Leave room for device name + sensor ID + float
+        unitLen = 50;
+    }
+    memcpy(&payload[index], unit, unitLen);
+    index += unitLen;
+    payload[index++] = '\0';  // Null terminator
+
+    return encodePacket(MSG_SENSOR_RESPONSE, payload, index, buffer);
+}
+
 size_t MessageProtocol::encodeCommand(uint8_t cmdId, const uint8_t* params, size_t paramLen, uint8_t* buffer) {
     uint8_t payload[MSG_MAX_PAYLOAD];
     size_t index = 0;
@@ -240,6 +274,45 @@ bool MessageProtocol::parseSensorResponse(const uint8_t* payload, uint8_t payloa
     }
 
     size_t index = 0;
+
+    // Clear device name (legacy format has no device name)
+    data.deviceName[0] = '\0';
+
+    // Extract sensor ID
+    data.sensorId = payload[index++];
+
+    // Extract value (4 bytes float)
+    memcpy(&data.value, &payload[index], sizeof(float));
+    index += sizeof(float);
+
+    // Extract unit string
+    size_t unitLen = 0;
+    while (index < payloadLength && payload[index] != '\0' && unitLen < 15) {
+        data.unit[unitLen++] = payload[index++];
+    }
+    data.unit[unitLen] = '\0';
+
+    return true;
+}
+
+bool MessageProtocol::parseSensorResponseWithDevice(const uint8_t* payload, uint8_t payloadLength, SensorData& data) {
+    if (payloadLength < 8) {  // Minimum: device_len(1) + device(1) + sensor_id(1) + float(4) + null(1)
+        return false;
+    }
+
+    size_t index = 0;
+
+    // Extract device name length
+    uint8_t deviceNameLen = payload[index++];
+    if (deviceNameLen > 31 || deviceNameLen + 7 > payloadLength) {
+        // Invalid length or payload too short
+        return false;
+    }
+
+    // Extract device name
+    memcpy(data.deviceName, &payload[index], deviceNameLen);
+    data.deviceName[deviceNameLen] = '\0';
+    index += deviceNameLen;
 
     // Extract sensor ID
     data.sensorId = payload[index++];

@@ -24,10 +24,21 @@ Statistics stats = {0, 0, 0, 0, 0};
 uint8_t rxBuffer[MSG_MAX_PACKET_SIZE];
 Message lastMessage;
 
+// ===== LED Blink Function =====
+void blinkLED() {
+    digitalWrite(LED_PIN, HIGH);
+    delay(50);  // Brief 50ms flash
+    digitalWrite(LED_PIN, LOW);
+}
+
 void setup() {
     // Initialize Serial
     Serial.begin(SERIAL_BAUD);
     delay(1500);
+
+    // Initialize LED pin
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, LOW);
 
     // Print banner
     Serial.println(F("\n\n"));
@@ -37,6 +48,8 @@ void setup() {
     Serial.println(F("===================================="));
     Serial.print(F("Board: "));
     Serial.println(BOARD_NAME);
+    Serial.print(F("LED Pin: "));
+    Serial.println(LED_PIN);
     Serial.println();
 
     // Initialize LoRa
@@ -72,6 +85,9 @@ void loop() {
         stats.totalRSSI += loraComm.getRSSI();
         stats.rssiCount++;
 
+        // Blink LED on packet received
+        blinkLED();
+
         // Decode message
         if (protocol.decode(rxBuffer, packetSize, lastMessage)) {
             lastMessage.rssi = loraComm.getRSSI();
@@ -79,15 +95,28 @@ void loop() {
 
             // Process based on message type
             if (lastMessage.type == MSG_SENSOR_RESPONSE) {
-                // Parse sensor response
+                // Parse sensor response - try with device name first, then fallback to legacy
                 SensorData data;
-                if (protocol.parseSensorResponse(lastMessage.payload, lastMessage.payloadLength, data)) {
+                bool parsed = protocol.parseSensorResponseWithDevice(lastMessage.payload, lastMessage.payloadLength, data);
+                if (!parsed) {
+                    // Fallback to legacy parsing (no device name)
+                    parsed = protocol.parseSensorResponse(lastMessage.payload, lastMessage.payloadLength, data);
+                }
+
+                if (parsed) {
                     // Display sensor data
                     unsigned long uptime = (millis() - stats.startTime) / 1000;
 
                     Serial.print(F("["));
                     Serial.print(uptime);
                     Serial.print(F("s] "));
+
+                    // Display device name if available
+                    if (data.deviceName[0] != '\0') {
+                        Serial.print(F("["));
+                        Serial.print(data.deviceName);
+                        Serial.print(F("] "));
+                    }
 
                     Serial.print(sensors.getSensorName(data.sensorId));
                     Serial.print(F(": "));

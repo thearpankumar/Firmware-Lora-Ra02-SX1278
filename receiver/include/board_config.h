@@ -24,6 +24,10 @@
     #error "BOARD_NAME not defined. Check platformio.ini build_flags"
 #endif
 
+#ifndef LED_PIN
+    #define LED_PIN LED_BUILTIN  // Default to built-in LED if not defined
+#endif
+
 // LoRa Configuration Parameters
 #define LORA_SPREADING_FACTOR 7         // SF7-SF12 (7=fast/short, 12=slow/long)
 #define LORA_SIGNAL_BANDWIDTH 125E3     // 125 kHz bandwidth
