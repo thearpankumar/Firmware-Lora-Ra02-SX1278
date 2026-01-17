@@ -69,6 +69,7 @@ void loop() {
         float value;
         const char* unit;
         const char* name;
+        uint8_t sensorToSend = currentSensor;  // Save current sensor ID before updating
 
         switch (currentSensor) {
             case SENSOR_TEMPERATURE:
@@ -100,8 +101,8 @@ void loop() {
                 return;
         }
 
-        // Encode sensor response with device name
-        size_t len = protocol.encodeSensorResponseWithDevice(DEVICE_NAME, currentSensor, value, unit, txBuffer);
+        // Encode sensor response with device name (use saved sensor ID)
+        size_t len = protocol.encodeSensorResponseWithDevice(DEVICE_NAME, sensorToSend, value, unit, txBuffer);
 
         if (len > 0 && loraComm.sendPacket(txBuffer, len)) {
             Serial.print(F("[TX] "));

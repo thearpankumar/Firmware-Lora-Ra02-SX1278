@@ -88,6 +88,20 @@ void loop() {
         // Blink LED on packet received
         blinkLED();
 
+        // Debug: Print raw packet info
+        Serial.print(F("[DEBUG] Received "));
+        Serial.print(packetSize);
+        Serial.print(F(" bytes, RSSI: "));
+        Serial.print(loraComm.getRSSI());
+        Serial.print(F(" | Raw: "));
+        for (int i = 0; i < min(packetSize, 20); i++) {
+            if (rxBuffer[i] < 0x10) Serial.print('0');
+            Serial.print(rxBuffer[i], HEX);
+            Serial.print(' ');
+        }
+        if (packetSize > 20) Serial.print(F("..."));
+        Serial.println();
+
         // Decode message
         if (protocol.decode(rxBuffer, packetSize, lastMessage)) {
             lastMessage.rssi = loraComm.getRSSI();
@@ -101,6 +115,18 @@ void loop() {
                 if (!parsed) {
                     // Fallback to legacy parsing (no device name)
                     parsed = protocol.parseSensorResponse(lastMessage.payload, lastMessage.payloadLength, data);
+                }
+
+                // Debug: Show parsing result
+                Serial.print(F("[DEBUG] Parse with device: "));
+                Serial.print(parsed ? F("OK") : F("FAIL"));
+                if (parsed) {
+                    Serial.print(F(", Device='"));
+                    Serial.print(data.deviceName);
+                    Serial.print(F("', Sensor="));
+                    Serial.println(data.sensorId);
+                } else {
+                    Serial.println();
                 }
 
                 if (parsed) {
